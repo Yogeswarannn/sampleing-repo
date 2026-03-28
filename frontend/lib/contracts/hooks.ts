@@ -18,11 +18,13 @@ export const useUSDCApproval = () => {
     async (spender: string, amount: string) => {
       try {
         setError(null);
+        const parsedAmount = parseUnits(amount, 6);
         const result = await writeContractAsync({
           address: USDC_ADDRESS as `0x${string}`,
           abi: ERC20ABI,
           functionName: 'approve',
-          args: [spender as `0x${string}`, parseUnits(amount, 6)],
+          args: [spender as `0x${string}`, parsedAmount],
+          gas: 100000n,
         });
         return result;
       } catch (err) {
@@ -48,11 +50,13 @@ export const usePostJob = () => {
     async (descriptionCID: string, budget: string) => {
       try {
         setError(null);
+        const parsedBudget = parseUnits(budget, 6);
         const result = await writeContractAsync({
           address: SEPOLIA_ADDRESSES.JobManager as `0x${string}`,
           abi: JobManagerABI,
           functionName: 'postJob',
-          args: [descriptionCID, parseUnits(budget, 6)],
+          args: [descriptionCID as `0x${string}` | string, parsedBudget],
+          gas: 300000n,
         });
         return result;
       } catch (err) {
@@ -78,11 +82,13 @@ export const useCreateTask = () => {
     async (jobId: number, title: string, rubricCID: string, budget: string, deadline: number = 604800) => {
       try {
         setError(null);
+        const parsedBudget = parseUnits(budget, 6);
         const result = await writeContractAsync({
           address: SEPOLIA_ADDRESSES.TaskContract as `0x${string}`,
           abi: TaskContractABI,
           functionName: 'createTask',
-          args: [jobId, title, rubricCID, parseUnits(budget, 6), deadline],
+          args: [jobId, title, rubricCID, parsedBudget, deadline],
+          gas: 300000n,
         });
         return result;
       } catch (err) {
@@ -138,11 +144,13 @@ export const usePlaceBid = () => {
     async (taskId: number, quotedPrice: string, credentialsCID: string) => {
       try {
         setError(null);
+        const parsedPrice = parseUnits(quotedPrice, 6);
         const result = await writeContractAsync({
           address: SEPOLIA_ADDRESSES.BiddingContract as `0x${string}`,
           abi: BiddingContractABI,
           functionName: 'placeBid',
-          args: [taskId, parseUnits(quotedPrice, 6), credentialsCID],
+          args: [taskId, parsedPrice, credentialsCID],
+          gas: 250000n,
         });
         return result;
       } catch (err) {
@@ -173,6 +181,7 @@ export const useSubmitWork = () => {
           abi: TaskContractABI,
           functionName: 'submitWork',
           args: [taskId, outputCID],
+          gas: 200000n,
         });
         return result;
       } catch (err) {
@@ -233,6 +242,7 @@ export const useSubmitVerification = () => {
           abi: VerificationContractABI,
           functionName: 'submitScore',
           args: [taskId, score, evidenceCID],
+          gas: 200000n,
         });
         return result;
       } catch (err) {
@@ -263,6 +273,7 @@ export const useReleasePayment = () => {
           abi: JobManagerABI,
           functionName: 'releasePayment',
           args: [taskId],
+          gas: 200000n,
         });
         return result;
       } catch (err) {
