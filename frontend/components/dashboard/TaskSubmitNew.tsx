@@ -20,6 +20,7 @@ interface TaskSubmitProps {
 
 export default function TaskSubmit({ onSubmit, isProcessing }: TaskSubmitProps) {
   const { address } = useAccount()
+  const [mounted, setMounted] = useState(false)
   const [task, setTask] = useState("")
   const [budget, setBudget] = useState("100") // Default USDC amount
   const [isApproving, setIsApproving] = useState(false)
@@ -30,6 +31,11 @@ export default function TaskSubmit({ onSubmit, isProcessing }: TaskSubmitProps) 
   const { postJob, isPending: isPostingJob, txHash } = usePostJob()
   const { balance } = useUSDCBalance(address)
   const { allowance } = useUSDCAllowance(address, SEPOLIA_ADDRESSES.JobManager)
+
+  // Ensure hydration matches by only rendering wallet-dependent content after mount
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // Check if approval is needed
   const needsApproval = allowance && allowance < BigInt(budget) * BigInt(10 ** 6)
@@ -110,7 +116,7 @@ export default function TaskSubmit({ onSubmit, isProcessing }: TaskSubmitProps) 
       </div>
 
       {/* Wallet Connection Status */}
-      {!address && (
+      {mounted && !address && (
         <div className="mb-4 p-4 bg-amber-500/10 border border-amber-500/20 rounded-lg flex items-start gap-3">
           <AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
           <div>
@@ -121,7 +127,7 @@ export default function TaskSubmit({ onSubmit, isProcessing }: TaskSubmitProps) 
       )}
 
       {/* USDC Balance Info */}
-      {address && balance && (
+      {mounted && address && balance && (
         <div className="mb-4 p-4 bg-white/5 border border-white/10 rounded-lg flex items-start gap-3">
           <CheckCircle className="w-5 h-5 text-[#00FFB2] flex-shrink-0 mt-0.5" />
           <div className="flex-1">
