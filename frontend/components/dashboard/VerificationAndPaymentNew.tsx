@@ -70,34 +70,34 @@ export default function VerificationAndPaymentNew({
   }
 
   return (
-    <div className="flex flex-col gap-6 h-full font-[family-name:var(--font-outfit)]">
+    <div className="flex flex-col gap-6 h-full">
       
       {/* Verification Results */}
       {showVerification && (
         <div className="bg-[#0F0F12] border border-white/5 rounded-2xl p-6">
           <div className="flex items-center gap-2 mb-6 text-[#00FFB2]">
-            <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <h3 className="text-white text-lg font-semibold">Verification & Scoring</h3>
           </div>
 
           {error && (
-            <div className="mb-4 p-4 bg-red-500/10 border border-red-500/20 rounded-lg flex items-start gap-3 mb-6">
-              <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
               <p className="text-red-500 text-sm">{error}</p>
             </div>
           )}
 
           {verificationStatus && (
-            <div className="mb-4 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg flex items-start gap-3 mb-6">
-              <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin flex-shrink-0 mt-0.5" />
+            <div className="mb-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg flex items-start gap-3">
+              <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin shrink-0 mt-0.5" />
               <p className="text-blue-500 text-sm">{verificationStatus}</p>
             </div>
           )}
 
           {currentStep === "verifying" && !verificationStatus && (
-            <div className="bg-gradient-to-br from-blue-500/5 to-transparent border border-blue-500/20 rounded-xl p-6 mb-6">
+            <div className="bg-linear-to-br from-blue-500/5 to-transparent border border-blue-500/20 rounded-xl p-6 mb-6">
               <h4 className="text-white/80 text-sm font-medium mb-4">Verify Work Quality (1-5 scale)</h4>
               
               <div className="space-y-4">
@@ -123,7 +123,7 @@ export default function VerificationAndPaymentNew({
                     </div>
                     <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
                       <div 
-                        className="h-full bg-gradient-to-r from-red-500 via-yellow-500 to-green-500" 
+                        className="h-full bg-linear-to-r from-red-500 via-yellow-500 to-green-500" 
                         style={{ width: `${(verificationScores[i] / 5) * 100}%` }}
                       />
                     </div>
@@ -159,7 +159,7 @@ export default function VerificationAndPaymentNew({
 
           {currentStep !== "verifying" && (
             <>
-              <div className="bg-gradient-to-br from-[#00FFB2]/5 to-transparent border border-[#00FFB2]/20 rounded-xl p-6 flex flex-col items-center justify-center text-center mb-6">
+              <div className="bg-linear-to-br from-[#00FFB2]/5 to-transparent border border-[#00FFB2]/20 rounded-xl p-6 flex flex-col items-center justify-center text-center mb-6">
                 <div className="w-16 h-16 rounded-full bg-[#00FFB2]/10 border border-[#00FFB2]/30 flex items-center justify-center mb-4">
                   <Check className="w-8 h-8 text-[#00FFB2]" />
                 </div>
@@ -188,7 +188,7 @@ export default function VerificationAndPaymentNew({
       {showPayment && (
         <div className="bg-[#0F0F12] border border-[#00FFB2]/20 rounded-2xl p-6 flex-1 flex flex-col">
           <div className="flex items-center gap-2 mb-8 text-[#00FFB2]">
-            <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
             </svg>
             <h3 className="text-white text-lg font-semibold">Smart Contract Payment</h3>
@@ -203,9 +203,9 @@ export default function VerificationAndPaymentNew({
                 <span className="text-white/60 text-[11px] uppercase tracking-wider">Escrowed</span>
               </div>
               
-              <div className="w-8 h-[1px] bg-white/20" />
+              <div className="w-8 h-px bg-white/20" />
               <svg className="w-4 h-4 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-              <div className="w-8 h-[1px] bg-[#00FFB2]/50" />
+              <div className="w-8 h-px bg-[#00FFB2]/50" />
 
               <div className="flex flex-col items-center">
                 <div className="w-10 h-10 rounded-full bg-[#00FFB2]/10 border border-[#00FFB2]/30 flex items-center justify-center text-[#00FFB2] mb-2">
@@ -214,9 +214,9 @@ export default function VerificationAndPaymentNew({
                 <span className="text-white text-[11px] uppercase tracking-wider">Verified</span>
               </div>
 
-              <div className="w-8 h-[1px] bg-white/20" />
+              <div className="w-8 h-px bg-white/20" />
               <svg className="w-4 h-4 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-              <div className="w-8 h-[1px] bg={currentStep === "completed" ? '#00FFB2' : 'white/20'}" />
+              <div className={`w-8 h-px ${currentStep === "completed" ? 'bg-[#00FFB2]' : 'bg-white/20'}`} />
 
               <div className="flex flex-col items-center">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${currentStep === "completed" ? 'bg-[#00FFB2]/10 border border-[#00FFB2]/30' : 'bg-white/5'}`}>
