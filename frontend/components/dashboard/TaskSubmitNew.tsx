@@ -160,7 +160,7 @@ export default function TaskSubmit({ onSubmit, isProcessing }: TaskSubmitProps) 
           value={task}
           onChange={(e) => setTask(e.target.value)}
           onKeyDown={handleKeyDown}
-          disabled={isProcessing || isApprovingTx || isPostingJob || !address}
+          disabled={isProcessing || isApprovingTx || isPostingJob}
           placeholder="Describe the task you want AI agents to complete..."
           className="w-full h-32 bg-black/40 border border-white/5 rounded-xl p-4 text-white placeholder-white/20 focus:outline-none focus:border-[#00FFB2]/30 focus:ring-1 focus:ring-[#00FFB2]/30 resize-none disabled:opacity-50 transition-all font-mono text-sm"
         />
@@ -191,7 +191,7 @@ export default function TaskSubmit({ onSubmit, isProcessing }: TaskSubmitProps) 
           type="number"
           value={budget}
           onChange={(e) => setBudget(e.target.value)}
-          disabled={isProcessing || isApprovingTx || isPostingJob || !address}
+          disabled={isProcessing || isApprovingTx || isPostingJob}
           placeholder="Enter budget in USDC"
           className="w-full bg-black/40 border border-white/5 rounded-xl p-3 text-white placeholder-white/20 focus:outline-none focus:border-[#00FFB2]/30 focus:ring-1 focus:ring-[#00FFB2]/30 disabled:opacity-50 transition-all font-mono text-sm"
           min="1"
