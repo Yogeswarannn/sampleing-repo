@@ -1,5 +1,5 @@
 import { useWriteContract, useReadContract, useWatchContractEvent } from 'wagmi';
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useRef } from 'react';
 import { parseUnits } from 'viem';
 import { SEPOLIA_ADDRESSES } from './addresses';
 import { JobManagerABI, TaskContractABI, BiddingContractABI, VerificationContractABI, ERC20ABI } from './abis';
@@ -11,189 +11,270 @@ const USDC_ADDRESS = '0x1c7D4B196Cb0C9BD997cF530D0F65B1b29A2994B';
  * Hook for USDC approval
  */
 export const useUSDCApproval = () => {
-  const { writeContract, isPending } = useWriteContract();
+  const { writeContractAsync, isPending } = useWriteContract();
+  const [error, setError] = useState<string | null>(null);
 
   const approveUSDC = useCallback(
     async (spender: string, amount: string) => {
-      writeContract({
-        address: USDC_ADDRESS as `0x${string}`,
-        abi: ERC20ABI,
-        functionName: 'approve',
-        args: [spender as `0x${string}`, parseUnits(amount, 6)],
-      });
+      try {
+        setError(null);
+        const result = await writeContractAsync({
+          address: USDC_ADDRESS as `0x${string}`,
+          abi: ERC20ABI,
+          functionName: 'approve',
+          args: [spender as `0x${string}`, parseUnits(amount, 6)],
+        });
+        return result;
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : 'Approval failed';
+        setError(errorMsg);
+        throw err;
+      }
     },
-    [writeContract]
+    [writeContractAsync]
   );
 
-  return { approveUSDC, isPending };
+  return { approveUSDC, isPending, error };
 };
 
 /**
  * Hook for posting a job
  */
 export const usePostJob = () => {
-  const { writeContract, isPending, data: hash } = useWriteContract();
+  const { writeContractAsync, isPending, data: hash } = useWriteContract();
+  const [error, setError] = useState<string | null>(null);
 
   const postJob = useCallback(
     async (descriptionCID: string, budget: string, timeLimit: number = 86400) => {
-      writeContract({
-        address: SEPOLIA_ADDRESSES.JobManager as `0x${string}`,
-        abi: JobManagerABI,
-        functionName: 'postJob',
-        args: [descriptionCID, parseUnits(budget, 6), timeLimit],
-      });
+      try {
+        setError(null);
+        const result = await writeContractAsync({
+          address: SEPOLIA_ADDRESSES.JobManager as `0x${string}`,
+          abi: JobManagerABI,
+          functionName: 'postJob',
+          args: [descriptionCID, parseUnits(budget, 6), timeLimit],
+        });
+        return result;
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : 'Job posting failed';
+        setError(errorMsg);
+        throw err;
+      }
     },
-    [writeContract]
+    [writeContractAsync]
   );
 
-  return { postJob, isPending, txHash: hash };
+  return { postJob, isPending, txHash: hash, error };
 };
 
 /**
  * Hook for creating a task (planning phase)
  */
 export const useCreateTask = () => {
-  const { writeContract, isPending, data: hash } = useWriteContract();
+  const { writeContractAsync, isPending, data: hash } = useWriteContract();
+  const [error, setError] = useState<string | null>(null);
 
   const createTask = useCallback(
     async (jobId: number, rubricesCID: string, budget: string) => {
-      writeContract({
-        address: SEPOLIA_ADDRESSES.TaskContract as `0x${string}`,
-        abi: TaskContractABI,
-        functionName: 'createTask',
-        args: [jobId, rubricesCID, parseUnits(budget, 6)],
-      });
+      try {
+        setError(null);
+        const result = await writeContractAsync({
+          address: SEPOLIA_ADDRESSES.TaskContract as `0x${string}`,
+          abi: TaskContractABI,
+          functionName: 'createTask',
+          args: [jobId, rubricesCID, parseUnits(budget, 6)],
+        });
+        return result;
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : 'Task creation failed';
+        setError(errorMsg);
+        throw err;
+      }
     },
-    [writeContract]
+    [writeContractAsync]
   );
 
-  return { createTask, isPending, txHash: hash };
+  return { createTask, isPending, txHash: hash, error };
 };
 
 /**
  * Hook for opening bid round
  */
 export const useOpenBidRound = () => {
-  const { writeContract, isPending, data: hash } = useWriteContract();
+  const { writeContractAsync, isPending, data: hash } = useWriteContract();
+  const [error, setError] = useState<string | null>(null);
 
   const openBidRound = useCallback(
     async (taskId: number, minReputation: number, bondAmount: string) => {
-      writeContract({
-        address: SEPOLIA_ADDRESSES.TaskContract as `0x${string}`,
-        abi: TaskContractABI,
-        functionName: 'openBidRound',
-        args: [taskId, minReputation, parseUnits(bondAmount, 6)],
-      });
+      try {
+        setError(null);
+        const result = await writeContractAsync({
+          address: SEPOLIA_ADDRESSES.TaskContract as `0x${string}`,
+          abi: TaskContractABI,
+          functionName: 'openBidRound',
+          args: [taskId, minReputation, parseUnits(bondAmount, 6)],
+        });
+        return result;
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : 'Bid round opening failed';
+        setError(errorMsg);
+        throw err;
+      }
     },
-    [writeContract]
+    [writeContractAsync]
   );
 
-  return { openBidRound, isPending, txHash: hash };
+  return { openBidRound, isPending, txHash: hash, error };
 };
 
 /**
  * Hook for placing a bid
  */
 export const usePlaceBid = () => {
-  const { writeContract, isPending, data: hash } = useWriteContract();
+  const { writeContractAsync, isPending, data: hash } = useWriteContract();
+  const [error, setError] = useState<string | null>(null);
 
   const placeBid = useCallback(
     async (taskId: number, quotedPrice: string, credentials: string) => {
-      writeContract({
-        address: SEPOLIA_ADDRESSES.BiddingContract as `0x${string}`,
-        abi: BiddingContractABI,
-        functionName: 'placeBid',
-        args: [taskId, parseUnits(quotedPrice, 6), credentials],
-      });
+      try {
+        setError(null);
+        const result = await writeContractAsync({
+          address: SEPOLIA_ADDRESSES.BiddingContract as `0x${string}`,
+          abi: BiddingContractABI,
+          functionName: 'placeBid',
+          args: [taskId, parseUnits(quotedPrice, 6), credentials],
+        });
+        return result;
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : 'Bid placement failed';
+        setError(errorMsg);
+        throw err;
+      }
     },
-    [writeContract]
+    [writeContractAsync]
   );
 
-  return { placeBid, isPending, txHash: hash };
+  return { placeBid, isPending, txHash: hash, error };
 };
 
 /**
  * Hook for submitting work
  */
 export const useSubmitWork = () => {
-  const { writeContract, isPending, data: hash } = useWriteContract();
+  const { writeContractAsync, isPending, data: hash } = useWriteContract();
+  const [error, setError] = useState<string | null>(null);
 
   const submitWork = useCallback(
     async (taskId: number, outputCID: string) => {
-      writeContract({
-        address: SEPOLIA_ADDRESSES.TaskContract as `0x${string}`,
-        abi: TaskContractABI,
-        functionName: 'submitWork',
-        args: [taskId, outputCID],
-      });
+      try {
+        setError(null);
+        const result = await writeContractAsync({
+          address: SEPOLIA_ADDRESSES.TaskContract as `0x${string}`,
+          abi: TaskContractABI,
+          functionName: 'submitWork',
+          args: [taskId, outputCID],
+        });
+        return result;
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : 'Work submission failed';
+        setError(errorMsg);
+        throw err;
+      }
     },
-    [writeContract]
+    [writeContractAsync]
   );
 
-  return { submitWork, isPending, txHash: hash };
+  return { submitWork, isPending, txHash: hash, error };
 };
 
 /**
  * Hook for opening verification round
  */
 export const useOpenVerificationRound = () => {
-  const { writeContract, isPending, data: hash } = useWriteContract();
+  const { writeContractAsync, isPending, data: hash } = useWriteContract();
+  const [error, setError] = useState<string | null>(null);
 
   const openVerificationRound = useCallback(
     async (taskId: number, requiredQuorum: number) => {
-      writeContract({
-        address: SEPOLIA_ADDRESSES.VerificationContract as `0x${string}`,
-        abi: VerificationContractABI,
-        functionName: 'openVerificationRound',
-        args: [taskId, requiredQuorum],
-      });
+      try {
+        setError(null);
+        const result = await writeContractAsync({
+          address: SEPOLIA_ADDRESSES.VerificationContract as `0x${string}`,
+          abi: VerificationContractABI,
+          functionName: 'openVerificationRound',
+          args: [taskId, requiredQuorum],
+        });
+        return result;
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : 'Verification round opening failed';
+        setError(errorMsg);
+        throw err;
+      }
     },
-    [writeContract]
+    [writeContractAsync]
   );
 
-  return { openVerificationRound, isPending, txHash: hash };
+  return { openVerificationRound, isPending, txHash: hash, error };
 };
 
 /**
  * Hook for submitting verification scores
  */
 export const useSubmitVerification = () => {
-  const { writeContract, isPending, data: hash } = useWriteContract();
+  const { writeContractAsync, isPending, data: hash } = useWriteContract();
+  const [error, setError] = useState<string | null>(null);
 
   const submitVerification = useCallback(
     async (taskId: number, scores: number[]) => {
-      writeContract({
-        address: SEPOLIA_ADDRESSES.VerificationContract as `0x${string}`,
-        abi: VerificationContractABI,
-        functionName: 'submitVerificationRound',
-        args: [taskId, scores],
-      });
+      try {
+        setError(null);
+        const result = await writeContractAsync({
+          address: SEPOLIA_ADDRESSES.VerificationContract as `0x${string}`,
+          abi: VerificationContractABI,
+          functionName: 'submitVerificationRound',
+          args: [taskId, scores],
+        });
+        return result;
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : 'Verification submission failed';
+        setError(errorMsg);
+        throw err;
+      }
     },
-    [writeContract]
+    [writeContractAsync]
   );
 
-  return { submitVerification, isPending, txHash: hash };
+  return { submitVerification, isPending, txHash: hash, error };
 };
 
 /**
  * Hook for releasing payment
  */
 export const useReleasePayment = () => {
-  const { writeContract, isPending, data: hash } = useWriteContract();
+  const { writeContractAsync, isPending, data: hash } = useWriteContract();
+  const [error, setError] = useState<string | null>(null);
 
   const releasePayment = useCallback(
     async (taskId: number) => {
-      writeContract({
-        address: SEPOLIA_ADDRESSES.JobManager as `0x${string}`,
-        abi: JobManagerABI,
-        functionName: 'releasePayment',
-        args: [taskId],
-      });
+      try {
+        setError(null);
+        const result = await writeContractAsync({
+          address: SEPOLIA_ADDRESSES.JobManager as `0x${string}`,
+          abi: JobManagerABI,
+          functionName: 'releasePayment',
+          args: [taskId],
+        });
+        return result;
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : 'Payment release failed';
+        setError(errorMsg);
+        throw err;
+      }
     },
-    [writeContract]
+    [writeContractAsync]
   );
 
-  return { releasePayment, isPending, txHash: hash };
+  return { releasePayment, isPending, txHash: hash, error };
 };
 
 /**
