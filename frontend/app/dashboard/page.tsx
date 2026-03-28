@@ -6,7 +6,6 @@ import WorkflowProgress from "@/components/dashboard/WorkflowProgress"
 import TaskPlan from "@/components/dashboard/TaskPlan"
 import ExecutionViewNew from "@/components/dashboard/ExecutionViewNew"
 import VerificationAndPaymentNew from "@/components/dashboard/VerificationAndPaymentNew"
-import SimpleTaskTest from "@/components/dashboard/SimpleTaskTest"
 import { CheckCircle2 } from "lucide-react"
 import { useJobPostedEvent, useBidPlacedEvent, useWorkSubmittedEvent, useTaskVerifiedEvent } from "@/lib/contracts/hooks"
 
@@ -205,9 +204,6 @@ export default function DashboardPage() {
         </div>
 
       </div>
-      
-      {/* Debug Test Component */}
-      <SimpleTaskTest />
     </>
   )
 }
