@@ -45,14 +45,14 @@ export const usePostJob = () => {
   const [error, setError] = useState<string | null>(null);
 
   const postJob = useCallback(
-    async (descriptionCID: string, budget: string, timeLimit: number = 86400) => {
+    async (descriptionCID: string, budget: string) => {
       try {
         setError(null);
         const result = await writeContractAsync({
           address: SEPOLIA_ADDRESSES.JobManager as `0x${string}`,
           abi: JobManagerABI,
           functionName: 'postJob',
-          args: [descriptionCID, parseUnits(budget, 6), timeLimit],
+          args: [descriptionCID, parseUnits(budget, 6)],
         });
         return result;
       } catch (err) {
@@ -75,14 +75,14 @@ export const useCreateTask = () => {
   const [error, setError] = useState<string | null>(null);
 
   const createTask = useCallback(
-    async (jobId: number, rubricesCID: string, budget: string) => {
+    async (jobId: number, title: string, rubricCID: string, budget: string, deadline: number = 604800) => {
       try {
         setError(null);
         const result = await writeContractAsync({
           address: SEPOLIA_ADDRESSES.TaskContract as `0x${string}`,
           abi: TaskContractABI,
           functionName: 'createTask',
-          args: [jobId, rubricesCID, parseUnits(budget, 6)],
+          args: [jobId, title, rubricCID, parseUnits(budget, 6), deadline],
         });
         return result;
       } catch (err) {
@@ -135,14 +135,14 @@ export const usePlaceBid = () => {
   const [error, setError] = useState<string | null>(null);
 
   const placeBid = useCallback(
-    async (taskId: number, quotedPrice: string, credentials: string) => {
+    async (taskId: number, quotedPrice: string, credentialsCID: string) => {
       try {
         setError(null);
         const result = await writeContractAsync({
           address: SEPOLIA_ADDRESSES.BiddingContract as `0x${string}`,
           abi: BiddingContractABI,
           functionName: 'placeBid',
-          args: [taskId, parseUnits(quotedPrice, 6), credentials],
+          args: [taskId, parseUnits(quotedPrice, 6), credentialsCID],
         });
         return result;
       } catch (err) {
@@ -225,14 +225,14 @@ export const useSubmitVerification = () => {
   const [error, setError] = useState<string | null>(null);
 
   const submitVerification = useCallback(
-    async (taskId: number, scores: number[]) => {
+    async (taskId: number, score: number, evidenceCID: string = "") => {
       try {
         setError(null);
         const result = await writeContractAsync({
           address: SEPOLIA_ADDRESSES.VerificationContract as `0x${string}`,
           abi: VerificationContractABI,
-          functionName: 'submitVerificationRound',
-          args: [taskId, scores],
+          functionName: 'submitScore',
+          args: [taskId, score, evidenceCID],
         });
         return result;
       } catch (err) {

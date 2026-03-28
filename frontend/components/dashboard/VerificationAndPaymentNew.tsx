@@ -44,7 +44,9 @@ export default function VerificationAndPaymentNew({
     setIsVerifying(true)
 
     try {
-      await submitVerification(taskId, verificationScores)
+      // Calculate average score (1-5 scale, multiply by 20 to get 0-100)
+      const avgScore = Math.round(verificationScores.reduce((a, b) => a + b, 0) / verificationScores.length * 20)
+      await submitVerification(taskId, avgScore, "")
       setVerificationStatus("Verification submitted! Waiting for confirmation...")
     } catch (err) {
       setError(`Verification failed: ${err instanceof Error ? err.message : 'Unknown error'}`)
