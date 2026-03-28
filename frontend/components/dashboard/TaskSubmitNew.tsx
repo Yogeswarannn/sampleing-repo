@@ -63,20 +63,23 @@ export default function TaskSubmit({ onSubmit, isProcessing }: TaskSubmitProps) 
       return
     }
 
-    if (!hasEnoughBalance) {
+    setError(null)
+    setTransactionStatus("Preparing transaction...")
+
+    // Only check balance if it's loaded
+    if (balance !== undefined && balance < BigInt(budget) * BigInt(10 ** 6)) {
       setError("Insufficient USDC balance")
       return
     }
 
-    setError(null)
-    setTransactionStatus("Preparing transaction...")
-
-    if (needsApproval) {
+    if (allowance !== undefined && needsApproval) {
       setTransactionStatus("Requesting USDC approval...")
       setIsApproving(true)
       try {
-        await approveUSDC(SEPOLIA_ADDRESSES.JobManager, budget)
+        const txHash = await approveUSDC(SEPOLIA_ADDRESSES.JobManager, budget)
         setTransactionStatus("Approval requested, waiting for confirmation...")
+        // Wait a moment for approval to be processed
+        await new Promise(resolve => setTimeout(resolve, 2000))
       } catch (err) {
         setError(`Approval failed: ${err instanceof Error ? err.message : 'Unknown error'}`)
         setIsApproving(false)
@@ -97,8 +100,10 @@ export default function TaskSubmit({ onSubmit, isProcessing }: TaskSubmitProps) 
 
     setTransactionStatus("Posting job to contract...")
     try {
-      await postJob(taskCID, budget)
-      setTransactionStatus("Job posted! Waiting for confirmation...")
+      const txHash = await postJob(taskCID, budget)
+      setTransactionStatus("Job posted! Transaction: " + (txHash?.slice(0, 10) || 'processing...'))
+      setTask("")
+      setBudget("100")
       onSubmit(task)
     } catch (err) {
       setError(`Job posting failed: ${err instanceof Error ? err.message : 'Unknown error'}`)
@@ -206,7 +211,7 @@ export default function TaskSubmit({ onSubmit, isProcessing }: TaskSubmitProps) 
         
         <button
           onClick={handleApproveAndSubmit}
-          disabled={!address || !task.trim() || !budget || isProcessing || isApprovingTx || isPostingJob || !hasEnoughBalance}
+          disabled={!address || !task.trim() || !budget || isProcessing || isApprovingTx || isPostingJob}
           className={`flex items-center gap-2 px-6 py-2.5 rounded-lg font-medium text-sm transition-all ${
             isApprovingTx || isPostingJob
               ? "bg-[#00FFB2]/10 text-[#00FFB2] border border-[#00FFB2]/20 shadow-[0_0_15px_rgba(0,255,178,0.2)]"
