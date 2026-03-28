@@ -38,9 +38,9 @@ const config = getDefaultConfig({
   chains: [sepolia, mainnet],
   ssr: false,
   transports: {
-    // Use public RPC endpoints with CORS support and better rate limits
-    [sepolia.id]: http('https://sepolia.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161'),
-    [mainnet.id]: http('https://mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161'),
+    // Use Ankr public RPC - excellent CORS support & consistent uptime
+    [sepolia.id]: http('https://rpc.ankr.com/eth_sepolia'),
+    [mainnet.id]: http('https://rpc.ankr.com/eth'),
   },
 });
 

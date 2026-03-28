@@ -6,6 +6,7 @@ import WorkflowProgress from "@/components/dashboard/WorkflowProgress"
 import TaskPlan from "@/components/dashboard/TaskPlan"
 import ExecutionViewNew from "@/components/dashboard/ExecutionViewNew"
 import VerificationAndPaymentNew from "@/components/dashboard/VerificationAndPaymentNew"
+import TaskOutput from "@/components/dashboard/TaskOutput"
 import { CheckCircle2 } from "lucide-react"
 import { useJobPostedEvent, useBidPlacedEvent, useWorkSubmittedEvent, useTaskVerifiedEvent } from "@/lib/contracts/hooks"
 
@@ -15,6 +16,7 @@ export default function DashboardPage() {
   const [currentState, setCurrentState] = useState<WorkflowState>("idle");
   const [taskText, setTaskText] = useState("");
   const [currentJobId, setCurrentJobId] = useState<number | null>(null);
+  const [outputCID, setOutputCID] = useState<string | null>(null);
   const [logs, setLogs] = useState<{time: string, agent: string, message: string, type: 'info'|'success'}[]>([]);
   const [contractEvents, setContractEvents] = useState<{type: string, timestamp: string}[]>([]);
 
@@ -45,6 +47,7 @@ export default function DashboardPage() {
   });
 
   useWorkSubmittedEvent((taskId, worker, outputCID) => {
+    setOutputCID(outputCID);
     setContractEvents(prev => [...prev, { type: `WorkSubmitted: Task ${taskId.toString()}`, timestamp: formatTime() }]);
     setLogs(prev => [...prev, { 
       time: formatTime(), 
@@ -183,19 +186,28 @@ export default function DashboardPage() {
               )}
               
               {(currentState === "verifying" || currentState === "payment" || currentState === "completed") && (
-                <VerificationAndPaymentNew 
-                  currentStep={currentState} 
-                  onReleasePayment={handleReleasePayment}
-                  taskId={currentJobId || undefined}
-                  onPaymentReleased={(txHash) => {
-                    setLogs(prev => [...prev, { 
-                      time: formatTime(), 
-                      agent: "[Payment]", 
-                      message: `Payment released: ${txHash.slice(0, 15)}...`, 
-                      type: 'success' 
-                    }]);
-                  }}
-                />
+                <>
+                  <VerificationAndPaymentNew 
+                    currentStep={currentState} 
+                    onReleasePayment={handleReleasePayment}
+                    taskId={currentJobId || undefined}
+                    onPaymentReleased={(txHash) => {
+                      setLogs(prev => [...prev, { 
+                        time: formatTime(), 
+                        agent: "[Payment]", 
+                        message: `Payment released: ${txHash.slice(0, 15)}...`, 
+                        type: 'success' 
+                      }]);
+                    }}
+                  />
+                  {outputCID && (
+                    <TaskOutput 
+                      outputCID={outputCID}
+                      taskDescription={taskText}
+                      status={currentState}
+                    />
+                  )}
+                </>
               )}
             </div>
             
