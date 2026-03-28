@@ -15,6 +15,7 @@ import {
   QueryClientProvider,
   QueryClient,
 } from "@tanstack/react-query";
+import { http } from 'viem';
 
 // Suppress the non-critical Reown/WalletConnect allowlist dev warning
 if (typeof window !== "undefined") {
@@ -35,7 +36,12 @@ const config = getDefaultConfig({
   appName: 'Taskverse',
   projectId: 'c01fe4b6ced4d48cecb1c8340d2dedad', 
   chains: [sepolia, mainnet],
-  ssr: false, 
+  ssr: false,
+  transports: {
+    // Use public RPC endpoints with CORS support and better rate limits
+    [sepolia.id]: http('https://sepolia.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161'),
+    [mainnet.id]: http('https://mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161'),
+  },
 });
 
 const queryClient = new QueryClient();
