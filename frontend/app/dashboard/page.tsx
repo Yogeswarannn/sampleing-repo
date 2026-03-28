@@ -1,24 +1,68 @@
 "use client"
 import { useState, useEffect } from "react"
 import DashboardNavbar from "@/components/dashboard/DashboardNavbar"
-import TaskSubmit from "@/components/dashboard/TaskSubmit"
+import TaskSubmitNew from "@/components/dashboard/TaskSubmitNew"
 import WorkflowProgress from "@/components/dashboard/WorkflowProgress"
 import TaskPlan from "@/components/dashboard/TaskPlan"
-import ExecutionView from "@/components/dashboard/ExecutionView"
-import VerificationAndPayment from "@/components/dashboard/VerificationAndPayment"
+import ExecutionViewNew from "@/components/dashboard/ExecutionViewNew"
+import VerificationAndPaymentNew from "@/components/dashboard/VerificationAndPaymentNew"
 import { CheckCircle2 } from "lucide-react"
+import { useJobPostedEvent, useBidPlacedEvent, useWorkSubmittedEvent, useTaskVerifiedEvent } from "@/lib/contracts/hooks"
 
 type WorkflowState = "idle" | "submitting" | "planning" | "executing" | "verifying" | "payment" | "completed";
 
 export default function DashboardPage() {
   const [currentState, setCurrentState] = useState<WorkflowState>("idle");
   const [taskText, setTaskText] = useState("");
+  const [currentJobId, setCurrentJobId] = useState<number | null>(null);
   const [logs, setLogs] = useState<{time: string, agent: string, message: string, type: 'info'|'success'}[]>([]);
+  const [contractEvents, setContractEvents] = useState<{type: string, timestamp: string}[]>([]);
 
   const formatTime = () => {
     const now = new Date();
     return `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
   };
+
+  // Listen for contract events
+  useJobPostedEvent((jobId, client, descriptionCID) => {
+    setContractEvents(prev => [...prev, { type: `JobPosted: ID ${jobId.toString()}`, timestamp: formatTime() }]);
+    setLogs(prev => [...prev, { 
+      time: formatTime(), 
+      agent: "[Contract]", 
+      message: `Job Posted: ID ${jobId.toString()}`, 
+      type: 'success' 
+    }]);
+  });
+
+  useBidPlacedEvent((taskId, bidder, quotedPrice) => {
+    setContractEvents(prev => [...prev, { type: `BidPlaced: Task ${taskId.toString()}`, timestamp: formatTime() }]);
+    setLogs(prev => [...prev, { 
+      time: formatTime(), 
+      agent: "[Agent]", 
+      message: `Bid Placed: ${bidder.slice(0, 10)}... bids ${quotedPrice.toString()}`, 
+      type: 'success' 
+    }]);
+  });
+
+  useWorkSubmittedEvent((taskId, worker, outputCID) => {
+    setContractEvents(prev => [...prev, { type: `WorkSubmitted: Task ${taskId.toString()}`, timestamp: formatTime() }]);
+    setLogs(prev => [...prev, { 
+      time: formatTime(), 
+      agent: "[Worker]", 
+      message: `Work Submitted: ${outputCID.slice(0, 20)}...`, 
+      type: 'success' 
+    }]);
+  });
+
+  useTaskVerifiedEvent((taskId, passed, averageScore) => {
+    setContractEvents(prev => [...prev, { type: `TaskVerified: ID ${taskId.toString()}`, timestamp: formatTime() }]);
+    setLogs(prev => [...prev, { 
+      time: formatTime(), 
+      agent: "[Verifier]", 
+      message: `Task ${passed ? 'Passed' : 'Failed'} - Score: ${averageScore}`, 
+      type: passed ? 'success' : 'info' 
+    }]);
+  });
 
   const runSimulation = () => {
     setCurrentState("submitting");
@@ -68,8 +112,9 @@ export default function DashboardPage() {
     }, 1500);
   };
 
-  const handleTaskSubmit = (task: string) => {
+  const handleTaskSubmit = (task: string, jobId?: number) => {
     setTaskText(task);
+    if (jobId) setCurrentJobId(jobId);
     runSimulation();
   };
 
@@ -90,14 +135,14 @@ export default function DashboardPage() {
               Agent Control Center
             </h1>
             <p className="text-lg md:text-xl text-white/50 font-light leading-relaxed">
-              Submit a task and watch AI agents autonomously plan, execute, verify, and get paid via smart contracts.
+              Post a task, enable bidding, verify quality, and release payments via smart contracts.
             </p>
           </div>
         )}
 
         <div className="w-full">
           {/* State: Idle or Submitting */}
-          <TaskSubmit onSubmit={handleTaskSubmit} isProcessing={currentState !== "idle"} />
+          <TaskSubmitNew onSubmit={handleTaskSubmit} isProcessing={currentState !== "idle"} />
 
         {/* Workflow Progress (visible after submitting) */}
         <WorkflowProgress currentState={currentState} />
@@ -114,11 +159,43 @@ export default function DashboardPage() {
             {/* Right Column */}
             <div className="flex flex-col gap-6">
               {(currentState === "planning" || currentState === "executing") && (
-                <ExecutionView currentStep={currentState} logs={logs} />
+                <ExecutionViewNew 
+                  currentStep={currentState} 
+                  logs={logs}
+                  taskId={currentJobId || undefined}
+                  onBidPlaced={(agent, amount) => {
+                    setLogs(prev => [...prev, { 
+                      time: formatTime(), 
+                      agent: "[Bidding]", 
+                      message: `${agent} placed bid: ${amount} USDC`, 
+                      type: 'success' 
+                    }]);
+                  }}
+                  onWorkSubmitted={(cid) => {
+                    setLogs(prev => [...prev, { 
+                      time: formatTime(), 
+                      agent: "[Submission]", 
+                      message: `Work submitted: ${cid.slice(0, 15)}...`, 
+                      type: 'success' 
+                    }]);
+                  }}
+                />
               )}
               
               {(currentState === "verifying" || currentState === "payment" || currentState === "completed") && (
-                <VerificationAndPayment currentStep={currentState} onReleasePayment={handleReleasePayment} />
+                <VerificationAndPaymentNew 
+                  currentStep={currentState} 
+                  onReleasePayment={handleReleasePayment}
+                  taskId={currentJobId || undefined}
+                  onPaymentReleased={(txHash) => {
+                    setLogs(prev => [...prev, { 
+                      time: formatTime(), 
+                      agent: "[Payment]", 
+                      message: `Payment released: ${txHash.slice(0, 15)}...`, 
+                      type: 'success' 
+                    }]);
+                  }}
+                />
               )}
             </div>
             

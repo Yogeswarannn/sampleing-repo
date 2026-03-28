@@ -12,6 +12,8 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from web3 import Web3
 import os
+import asyncio
+from contract_integration import contract_manager, register_event_handler, emit_event
 
 RPC_URL = "https://sepolia.infura.io/v3/YOUR_INFURA_KEY"
 PRIVATE_KEY = os.environ.get("PRIVATE_KEY")
@@ -305,3 +307,149 @@ def demo(task: str):
             "explorer_url": "https://sepolia.etherscan.io/address/0xYOUR_CONTRACT_ADDRESS"
         }
     }
+
+
+# ─── Contract Integration Routes ────────────────────────────────────────────────
+
+
+@app.get("/contract/status", tags=["Contract"])
+def get_contract_status():
+    """Get the status of smart contract connection"""
+    is_connected = contract_manager.is_connected()
+    balance = contract_manager.get_account_balance()
+    
+    return {
+        "connected": is_connected,
+        "account": contract_manager.account.address if contract_manager.account else None,
+        "balance_eth": balance,
+        "rpc_url": os.getenv("RPC_URL", "Not configured"),
+        "contracts": {
+            "job_manager": contract_manager.job_manager_address,
+            "task_contract": contract_manager.task_contract_address,
+            "bidding_contract": contract_manager.bidding_contract_address,
+            "verification_contract": contract_manager.verification_contract_address,
+        }
+    }
+
+
+@app.post("/contract/register-handler", tags=["Contract"])
+def register_handler(event_name: str, handler_type: str = "log"):
+    """Register an event handler for contract events"""
+    
+    if handler_type == "log":
+        async def log_handler(event_data):
+            print(f"[EVENT] {event_name}: {event_data}")
+        
+        register_event_handler(event_name, log_handler)
+        return {"status": "registered", "event": event_name, "handler": "log"}
+    
+    raise HTTPException(status_code=400, detail="Unknown handler type")
+
+
+@app.post("/contract/emit-event", tags=["Contract"])
+async def emit_contract_event(event_name: str, event_data: dict):
+    """Manually emit a contract event (for testing)"""
+    try:
+        await emit_event(event_name, event_data)
+        return {"status": "emitted", "event": event_name}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/contract/job/{job_id}", tags=["Contract"])
+def get_job_info(job_id: int):
+    """Get information about a job from the contract"""
+    try:
+        # In production, call the actual contract here
+        # For now, return mock data
+        return {
+            "job_id": job_id,
+            "status": "IN_PROGRESS",
+            "client": "0x1234...5678",
+            "budget": "1000.00",
+            "description_cid": "QmXxxxxxxxxxxx",
+            "created_at": datetime.utcnow().isoformat(),
+            "tasks": [
+                {"task_id": 1, "status": "COMPLETED"},
+                {"task_id": 2, "status": "IN_PROGRESS"},
+                {"task_id": 3, "status": "PENDING"},
+            ]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/contract/select-winner", tags=["Contract"])
+def select_winner(task_id: int):
+    """Trigger winner selection for a bidding round"""
+    try:
+        # In production, call the actual contract function
+        # For now, return mock response
+        return {
+            "status": "success",
+            "task_id": task_id,
+            "winner": "0xDataMinerPro123456789",
+            "quoted_price": "150.50",
+            "tx_hash": generate_tx_hash(f"select_winner_{task_id}", 0)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/contract/verify-task", tags=["Contract"])
+def verify_task(task_id: int, scores: list, average_score: float = 85.0):
+    """Submit verification results for a task"""
+    try:
+        # In production, call the actual VerificationContract.submitVerificationRound()
+        # For now, return mock response
+        passed = average_score >= 70
+        
+        return {
+            "status": "success",
+            "task_id": task_id,
+            "scores": scores,
+            "average_score": average_score,
+            "passed": passed,
+            "tx_hash": generate_tx_hash(f"verify_task_{task_id}", int(average_score))
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/contract/release-payment", tags=["Contract"])
+def release_payment(job_id: int, amount: str):
+    """Release payment for a completed job"""
+    try:
+        # In production, call JobManager.releasePayment()
+        # For now, return mock response
+        return {
+            "status": "success",
+            "job_id": job_id,
+            "amount": amount,
+            "token": "USDC",
+            "tx_hash": generate_tx_hash(f"release_payment_{job_id}", int(float(amount))),
+            "explorer_url": "https://sepolia.etherscan.io/tx/0x..."
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ─── Background Task to Listen for Events ──────────────────────────────────────
+
+async def start_event_listeners():
+    """Start listening for smart contract events in the background"""
+    # This would be called on app startup
+    # For now, just a placeholder
+    pass
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize event listeners on app startup"""
+    print("[STARTUP] Checking contract connection...")
+    if contract_manager.is_connected():
+        print("[STARTUP] Connected to Ethereum network!")
+        # Start event listeners in background
+        # asyncio.create_task(start_event_listeners())
+    else:
+        print("[STARTUP] Warning: Not connected to Ethereum network")
